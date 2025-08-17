@@ -16,6 +16,7 @@ interface CandidateCardProps {
 const CandidateCard: React.FC<CandidateCardProps> = ({
   name,
   gradDate,
+  major,
   imageUrl,
 }) => {
   return (
@@ -29,6 +30,9 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
       <CardContent>
         <Typography gutterBottom variant="h5" component="div">
           {name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Major: {major}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Graduation Date: {gradDate}
