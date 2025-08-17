@@ -9,12 +9,10 @@ const CandidateScreen: React.FC = () => {
 
   useEffect(() => {
     const url = `${apiUrl}/candidates`;
-    console.log('Fetching candidates from:', url);
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
         setCandidates(data);
-        console.log('Fetched candidates:', data);
         setLoading(false);
       })
       .catch((error) => {
