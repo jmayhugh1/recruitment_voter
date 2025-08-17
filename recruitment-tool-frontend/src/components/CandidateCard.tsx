@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 interface CandidateCardProps {
   name: string;
   gradDate: number;
+  major: string;
   imageUrl: string;
 }
 
