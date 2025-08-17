@@ -5,26 +5,20 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import type { Candidate } from '../types';
 
-interface CandidateCardProps {
-  name: string;
-  gradDate: number;
-  major: string;
-  imageUrl: string;
-}
-
-const CandidateCard: React.FC<CandidateCardProps> = ({
+const CandidateCard: React.FC<Candidate> = ({
   name,
-  gradDate,
+  grad_date,
   major,
-  imageUrl,
+  image_url,
 }) => {
   return (
     <Card sx={{ maxWidth: 345, margin: 'auto', boxShadow: 3 }}>
       <CardMedia
         component="img"
         height="140"
-        image={imageUrl}
+        image={image_url}
         alt={`${name}'s profile`}
       />
       <CardContent>
@@ -35,7 +29,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
           Major: {major}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Graduation Date: {gradDate}
+          Graduation Date: {grad_date}
         </Typography>
       </CardContent>
       <CardActions>
