@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
@@ -6,8 +6,8 @@ import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import type { Candidate } from '../types';
-import useSelectedName from '../hooks/useSelectedName';
-
+import { UserContext } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const CandidateCard: React.FC<Candidate> = ({
@@ -18,16 +18,22 @@ const CandidateCard: React.FC<Candidate> = ({
   image_url,
 }) => {
   const [selectedVote, setSelectedVote] = useState<null | 'up' | 'down'>(null);
-  const { selectedName } = useSelectedName();
-
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
   const voteMap = {
     up: 1,
     down: -1,
   };
 
   const updateVotes = (voteType: 'up' | 'down') => {
+    // if the user is not selected for no we will just take them to the sign in
+    if (!user) {
+      alert('Please Sign in');
+      navigate('/');
+      return;
+    }
     // If the user clicks the same button again, deselect (remove vote)
-    console.log('Selected Name is voting:', selectedName);
+    console.log('Selected Name is voting:', user);
     if (selectedVote === voteType) {
       setSelectedVote(null);
 
@@ -38,7 +44,7 @@ const CandidateCard: React.FC<Candidate> = ({
           id,
           name,
           increment: -voteMap[voteType], // undo the vote
-          recruiter_name: selectedName,
+          recruiter_name: user,
         }),
       });
       return;
@@ -55,7 +61,7 @@ const CandidateCard: React.FC<Candidate> = ({
           id,
           name,
           increment: voteMap[voteType] * 2, // double adjustment
-          recruiter_name: selectedName,
+          recruiter_name: user,
         }),
       });
       return;
@@ -70,7 +76,7 @@ const CandidateCard: React.FC<Candidate> = ({
         id,
         name,
         increment: voteMap[voteType],
-        recruiter_name: selectedName,
+        recruiter_name: user,
       }),
     });
   };

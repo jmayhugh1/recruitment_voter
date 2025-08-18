@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   TextField,
   Autocomplete,
@@ -7,35 +8,42 @@ import {
   Box,
   Button,
 } from '@mui/material';
-import useSelectedName from '../hooks/useSelectedName.ts';
-
+import { UserContext } from '../context/UserContext';
 const apiUrl = import.meta.env.VITE_API_URL as string;
-
 const SignIn: React.FC = () => {
   const [recruitmentTeam, setRecruitmentTeam] = useState<string[]>([]);
-  const { selectedName, setSelectedName } = useSelectedName();
-  const [tempName, setTempName] = useState<string | null>(selectedName);
+  const { setUser } = useContext(UserContext);
+  const [tempName, setTempName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    setLoading(true);
     fetch(`${apiUrl}/recruitment-team`)
       .then((res) => res.json())
       .then((data: { recruiter_name: string }[]) =>
         setRecruitmentTeam(data.map((d) => d.recruiter_name)),
       )
       .catch((err) => {
+        alert('Failed to fetch recruitment team. Please try again later.');
         console.error('Failed to fetch recruitment team:', err);
         setRecruitmentTeam([]);
       });
+    setLoading(false);
   }, []);
 
   const submitClicked = () => {
     if (tempName) {
-      setSelectedName(tempName);
+      setUser(tempName);
       console.log('Selected Name:', tempName);
+      navigate('/candidates');
     } else {
       alert('Please select your name to continue.');
     }
   };
+  if (loading) {
+    return <Container maxWidth="sm">Loading...</Container>;
+  }
 
   return (
     <Container maxWidth="sm">
