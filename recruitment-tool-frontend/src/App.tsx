@@ -1,13 +1,12 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import CandidateScreen from './pages/CandidateScreen';
-import './App.css';
+import { Routes, Route } from "react-router-dom";
+import SignInScreen from "./pages/SignInScreen";
+import CandidateScreen from "./pages/CandidateScreen";
 
-function App() {
+export default function App() {
   return (
-    <CandidateScreen />
+    <Routes>
+      <Route path="/" element={<SignInScreen />} />
+      <Route path="/candidates" element={<CandidateScreen />} />
+    </Routes>
   );
 }
-
-export default App;

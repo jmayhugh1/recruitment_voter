@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
@@ -6,6 +6,8 @@ import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import type { Candidate } from '../types';
+import useSelectedName from '../hooks/useSelectedName';
+
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const CandidateCard: React.FC<Candidate> = ({
@@ -15,34 +17,62 @@ const CandidateCard: React.FC<Candidate> = ({
   major,
   image_url,
 }) => {
+  const [selectedVote, setSelectedVote] = useState<null | 'up' | 'down'>(null);
+  const { selectedName } = useSelectedName();
+
   const voteMap = {
     up: 1,
     down: -1,
   };
 
   const updateVotes = (voteType: 'up' | 'down') => {
-    const url = `${apiUrl}/vote`;
-    const params = {
-      id: id,
-      name: name,
-      increment: voteMap[voteType],
-    };
-    console.log('Updating vote for:', params);
+    // If the user clicks the same button again, deselect (remove vote)
+    console.log('Selected Name is voting:', selectedName);
+    if (selectedVote === voteType) {
+      setSelectedVote(null);
 
-    fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(params),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Vote updated:', data);
-      })
-      .catch((error) => {
-        console.error('Error updating vote:', error);
+      fetch(`${apiUrl}/vote`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          name,
+          increment: -voteMap[voteType], // undo the vote
+          recruiter_name: selectedName,
+        }),
       });
+      return;
+    }
+
+    // If switching from up -> down or down -> up
+    if (selectedVote && selectedVote !== voteType) {
+      setSelectedVote(voteType);
+
+      fetch(`${apiUrl}/vote`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          name,
+          increment: voteMap[voteType] * 2, // double adjustment
+          recruiter_name: selectedName,
+        }),
+      });
+      return;
+    }
+
+    // If voting fresh (no previous vote)
+    setSelectedVote(voteType);
+    fetch(`${apiUrl}/vote`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id,
+        name,
+        increment: voteMap[voteType],
+        recruiter_name: selectedName,
+      }),
+    });
   };
 
   return (
@@ -65,12 +95,18 @@ const CandidateCard: React.FC<Candidate> = ({
         </Typography>
       </CardContent>
       <CardActions>
-        <Button size="small" color="primary" onClick={() => updateVotes('up')}>
+        <Button
+          size="small"
+          color="primary"
+          variant={selectedVote === 'up' ? 'contained' : 'outlined'}
+          onClick={() => updateVotes('up')}
+        >
           UpVote
         </Button>
         <Button
           size="small"
           color="secondary"
+          variant={selectedVote === 'down' ? 'contained' : 'outlined'}
           onClick={() => updateVotes('down')}
         >
           DownVote
