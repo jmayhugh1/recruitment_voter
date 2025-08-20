@@ -1,14 +1,19 @@
-import React, { useState, useContext } from 'react';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import type { Candidate } from '../types';
-import { UserContext } from '../context/UserContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from "react";
+import Card from "@mui/material/Card";
+import CardActions from "@mui/material/CardActions";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import type { Candidate } from "../types";
+import { UserContext } from "../context/UserContext";
+
 const apiUrl = import.meta.env.VITE_API_URL;
+
+// Constants for votes
+const UPVOTE = 1;
+const DOWNVOTE = -1;
+const NOVOTE = 0;
 
 const CandidateCard: React.FC<Candidate> = ({
   id,
@@ -16,73 +21,43 @@ const CandidateCard: React.FC<Candidate> = ({
   grad_date,
   major,
   image_url,
+  votes = NOVOTE, // preload recruiter’s current vote from backend
 }) => {
-  const [selectedVote, setSelectedVote] = useState<null | 'up' | 'down'>(null);
   const { user } = useContext(UserContext);
-  const navigate = useNavigate();
-  const voteMap = {
-    up: 1,
-    down: -1,
-  };
 
-  const updateVotes = (voteType: 'up' | 'down') => {
-    // if the user is not selected for no we will just take them to the sign in
-    if (!user) {
-      alert('Please Sign in');
-      navigate('/');
-      return;
-    }
-    // If the user clicks the same button again, deselect (remove vote)
-    console.log('Selected Name is voting:', user);
-    if (selectedVote === voteType) {
-      setSelectedVote(null);
+  // Track the recruiter’s vote locally (number form)
+  const [selectedVote, setSelectedVote] = useState<number>(votes);
 
-      fetch(`${apiUrl}/vote`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          name,
-          increment: -voteMap[voteType], // undo the vote
-          recruiter_name: user,
-        }),
-      });
-      return;
+  const updateVotes = (vote: number) => {
+    let increment = vote;
+
+    if (selectedVote === vote) {
+      // Deselect (undo vote)
+      increment = -vote;
+      setSelectedVote(NOVOTE);
+    } else if (selectedVote !== NOVOTE && selectedVote !== vote) {
+      // Switching votes: e.g. -1 → 1 means +2 adjustment
+      increment = vote * 2;
+      setSelectedVote(vote);
+    } else {
+      // Fresh vote
+      setSelectedVote(vote);
     }
 
-    // If switching from up -> down or down -> up
-    if (selectedVote && selectedVote !== voteType) {
-      setSelectedVote(voteType);
-
-      fetch(`${apiUrl}/vote`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          name,
-          increment: voteMap[voteType] * 2, // double adjustment
-          recruiter_name: user,
-        }),
-      });
-      return;
-    }
-
-    // If voting fresh (no previous vote)
-    setSelectedVote(voteType);
     fetch(`${apiUrl}/vote`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id,
         name,
-        increment: voteMap[voteType],
+        increment,
         recruiter_name: user,
       }),
     });
   };
 
   return (
-    <Card sx={{ maxWidth: 345, margin: 'auto', boxShadow: 3 }}>
+    <Card sx={{ maxWidth: 345, margin: "auto", boxShadow: 3 }}>
       <CardMedia
         component="img"
         height="140"
@@ -104,16 +79,16 @@ const CandidateCard: React.FC<Candidate> = ({
         <Button
           size="small"
           color="primary"
-          variant={selectedVote === 'up' ? 'contained' : 'outlined'}
-          onClick={() => updateVotes('up')}
+          variant={selectedVote === UPVOTE ? "contained" : "outlined"}
+          onClick={() => updateVotes(UPVOTE)}
         >
           UpVote
         </Button>
         <Button
           size="small"
           color="secondary"
-          variant={selectedVote === 'down' ? 'contained' : 'outlined'}
-          onClick={() => updateVotes('down')}
+          variant={selectedVote === DOWNVOTE ? "contained" : "outlined"}
+          onClick={() => updateVotes(DOWNVOTE)}
         >
           DownVote
         </Button>
