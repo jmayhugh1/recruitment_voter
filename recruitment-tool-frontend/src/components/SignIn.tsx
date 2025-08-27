@@ -9,6 +9,7 @@ import {
   Button,
 } from '@mui/material';
 import { UserContext } from '../context/UserContext';
+import Loading from './Loading';
 const apiUrl = import.meta.env.VITE_API_URL as string;
 const SignIn: React.FC = () => {
   const [recruitmentTeam, setRecruitmentTeam] = useState<string[]>([]);
@@ -42,7 +43,7 @@ const SignIn: React.FC = () => {
     }
   };
   if (loading) {
-    return <Container maxWidth="sm">Loading...</Container>;
+    return <Loading />;
   }
 
   return (

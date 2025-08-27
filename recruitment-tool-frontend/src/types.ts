@@ -4,10 +4,11 @@ export interface Candidate {
     grad_date: number;
     major: string;
     image_url: string;
-    votes?: -1 | 0 | 1; // Optional, for displaying vote status
+    recruiter_specific_vote?: -1 | 0 | 1; // Optional, for displaying if the current recruiter has voted
+    votes?: number; 
   }
 
 export interface VoteInfo {
     id: number;
-    votes: number;
+    vote: number;
 }

@@ -3,6 +3,7 @@ import CandidateCard from '../components/CandidateCard';
 import type { VoteInfo, Candidate } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
+import Loading from '../components/Loading';
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const CandidateScreen: React.FC = () => {
@@ -32,7 +33,7 @@ const CandidateScreen: React.FC = () => {
         await response.json();
       return data.map((item) => ({
         id: parseInt(item.recruit_id, 10),
-        votes: parseInt(item.votes, 10),
+        vote: parseInt(item.votes, 10),
       }));
     } catch (error) {
       console.error('Failed to fetch saved vote info:', error);
@@ -64,8 +65,8 @@ const CandidateScreen: React.FC = () => {
       console.log('Previous Votes:', previousVotes);
       candidates.forEach((candidate) => {
         const voteInfo = previousVotes.find((vote) => vote.id === candidate.id);
-        candidate.votes = voteInfo
-          ? (voteInfo.votes as 0 | 1 | -1 | undefined)
+        candidate.recruiter_specific_vote = voteInfo
+          ? (voteInfo.vote as 0 | 1 | -1 | undefined)
           : 0;
       });
       setCandidates(candidates);
@@ -75,7 +76,9 @@ const CandidateScreen: React.FC = () => {
     fetchData();
   }, [navigate, user]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div
@@ -94,7 +97,7 @@ const CandidateScreen: React.FC = () => {
           grad_date={cand.grad_date}
           major={cand.major}
           image_url={cand.image_url}
-          votes={cand.votes}
+          recruiter_specific_vote={cand.recruiter_specific_vote}
         />
       ))}
     </div>

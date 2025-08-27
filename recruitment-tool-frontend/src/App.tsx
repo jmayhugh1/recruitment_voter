@@ -5,6 +5,7 @@ import CandidateScreen from './pages/CandidateScreen';
 import { UserContext } from './context/UserContext';
 import type { UserContextType } from './context/UserContext';
 import Footer from './components/Footer';
+import AnalyticsScreen from './pages/AnalyticsScreen';
 export default function App() {
   const [user, setUser] = useState<UserContextType['user']>(null);
 
@@ -13,6 +14,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<SignInScreen />} />
         <Route path="/candidates" element={<CandidateScreen />} />
+        <Route path="/analytics" element={<AnalyticsScreen />} />
       </Routes>
       <Footer />
     </UserContext.Provider>

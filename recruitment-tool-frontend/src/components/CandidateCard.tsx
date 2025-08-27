@@ -21,12 +21,12 @@ const CandidateCard: React.FC<Candidate> = ({
   grad_date,
   major,
   image_url,
-  votes = NOVOTE, // preload recruiter’s current vote from backend
+  recruiter_specific_vote = NOVOTE, // preload recruiter’s current vote from backend
 }) => {
   const { user } = useContext(UserContext);
 
   // Track the recruiter’s vote locally (number form)
-  const [selectedVote, setSelectedVote] = useState<number>(votes);
+  const [selectedVote, setSelectedVote] = useState<number>(recruiter_specific_vote);
 
   const updateVotes = (vote: number) => {
     let increment = vote;
