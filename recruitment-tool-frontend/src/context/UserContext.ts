@@ -1,10 +1,12 @@
 import React, { createContext } from 'react';
+import type { Recruiter } from '../types';
 
 export interface UserContextType {
-  user: string | null;
-  setUser: React.Dispatch<React.SetStateAction<string | null>>;
+  recruiter: Recruiter | null;
+  setRecruiter: React.Dispatch<React.SetStateAction<Recruiter | null>>;
+
 }
 export const UserContext = createContext<UserContextType>({
-  user: null,
-  setUser: () => {},
+  recruiter: null,
+  setRecruiter: () => {},
 });

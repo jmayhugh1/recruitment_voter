@@ -9,14 +9,14 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const CandidateScreen: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useContext(UserContext);
+  const { recruiter } = useContext(UserContext);
 
   const navigate = useNavigate();
   const getPreviousSavedVoteInfo = async (): Promise<VoteInfo[]> => {
     try {
       const url_voting_info = `${apiUrl}/saved-vote-info`;
       const body = JSON.stringify({
-        recruiter_name: user,
+        recruiter_name: recruiter?.recruiter_name,
       });
       const response = await fetch(url_voting_info, {
         method: 'POST',
@@ -55,7 +55,7 @@ const CandidateScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!user) {
+      if (!recruiter) {
         alert('Please Sign in to view candidates');
         navigate('/');
         return;
@@ -74,7 +74,7 @@ const CandidateScreen: React.FC = () => {
     };
 
     fetchData();
-  }, [navigate, user]);
+  }, [navigate, recruiter]);
 
   if (loading) {
     return <Loading />;

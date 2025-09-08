@@ -10,11 +10,13 @@ import {
 } from '@mui/material';
 import { UserContext } from '../context/UserContext';
 import Loading from './Loading';
+import type { Recruiter } from '../types.ts';
+
 const apiUrl = import.meta.env.VITE_API_URL as string;
 const SignIn: React.FC = () => {
-  const [recruitmentTeam, setRecruitmentTeam] = useState<string[]>([]);
-  const { setUser } = useContext(UserContext);
-  const [tempName, setTempName] = useState<string | null>(null);
+  const [recruitmentTeam, setRecruitmentTeam] = useState<Recruiter[]>([]);
+  const { setRecruiter } = useContext(UserContext);
+  const [tempRecruiter, setTempRecruiter] = useState<Recruiter | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -22,8 +24,13 @@ const SignIn: React.FC = () => {
     setLoading(true);
     fetch(`${apiUrl}/recruitment-team`)
       .then((res) => res.json())
-      .then((data: { recruiter_name: string }[]) =>
-        setRecruitmentTeam(data.map((d) => d.recruiter_name)),
+      .then((data: { recruiter_name: string; admin: boolean }[]) =>
+        setRecruitmentTeam(
+          data.map((d) => ({
+            recruiter_name: d.recruiter_name,
+            admin: d.admin,
+          })),
+        ),
       )
       .catch((err) => {
         alert('Failed to fetch recruitment team. Please try again later.');
@@ -34,9 +41,9 @@ const SignIn: React.FC = () => {
   }, []);
 
   const submitClicked = () => {
-    if (tempName) {
-      setUser(tempName);
-      console.log('Selected Name:', tempName);
+    if (tempRecruiter) {
+      setRecruiter(tempRecruiter);
+      console.log('Selected Name:', tempRecruiter);
       navigate('/candidates');
     } else {
       alert('Please select your name to continue.');
@@ -53,10 +60,14 @@ const SignIn: React.FC = () => {
           Sign In
         </Typography>
 
-        <Autocomplete<string, false, false, false>
+        <Autocomplete<Recruiter, false, false, false>
           options={recruitmentTeam}
-          value={tempName}
-          onChange={(_, newValue) => setTempName(newValue)}
+          value={tempRecruiter}
+          onChange={(_, newValue) => setTempRecruiter(newValue)}
+          getOptionLabel={(option) => option.recruiter_name}
+          isOptionEqualToValue={(opt, val) =>
+            opt.recruiter_name === val.recruiter_name
+          }
           renderInput={(params) => (
             <TextField
               {...params}
@@ -68,6 +79,7 @@ const SignIn: React.FC = () => {
           ListboxProps={{
             style: { maxHeight: 220, overflowY: 'auto', minWidth: 320 },
           }}
+          autoHighlight
         />
 
         <Button
@@ -76,7 +88,7 @@ const SignIn: React.FC = () => {
           fullWidth
           sx={{ mt: 2 }}
           onClick={submitClicked}
-          disabled={!tempName}
+          disabled={!tempRecruiter}
         >
           Submit
         </Button>

@@ -7,7 +7,10 @@ export interface Candidate {
     recruiter_specific_vote?: -1 | 0 | 1; // Optional, for displaying if the current recruiter has voted
     votes?: number; 
   }
-
+export interface Recruiter {
+    recruiter_name : string;
+    admin :  boolean;
+}
 export interface VoteInfo {
     id: number;
     vote: number;
