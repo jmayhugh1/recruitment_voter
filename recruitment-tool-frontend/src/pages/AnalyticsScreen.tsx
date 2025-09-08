@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import type { Candidate } from '../types';
 import {
   ResponsiveContainer,
@@ -12,6 +12,8 @@ import {
 } from 'recharts';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import Loading from '../components/Loading';
+import { UserContext } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 const apiUrl = import.meta.env.VITE_API_URL as string;
 
 async function getTopNCandidates(n: number): Promise<Candidate[]> {
@@ -30,8 +32,16 @@ export default function AnalyticsScreen() {
   const [topN, setTopN] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { recruiter } = useContext(UserContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!recruiter?.admin) {
+      alert('Only Admins Can Access Analytics');
+      navigate('/candidates');
+      return;
+    }
+    // make sure user is an admon
     let cancelled = false;
     (async () => {
       try {
@@ -48,7 +58,7 @@ export default function AnalyticsScreen() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [navigate, recruiter]);
 
   const data = useMemo(
     () => [...topN].sort((a, b) => Number(b.votes ?? 0) - Number(a.votes ?? 0)),
