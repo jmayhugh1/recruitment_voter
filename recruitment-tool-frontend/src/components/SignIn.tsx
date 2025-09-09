@@ -22,7 +22,7 @@ const SignIn: React.FC = () => {
   const navigate = useNavigate();
   const regularUserPassword = import.meta.env
     .VITE_REGULAR_USER_PASSWORD as string;
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD as string;
+  const adminPassword = import.meta.env.VITE_ADMIN_USER_PASSWORD as string;
   useEffect(() => {
     setLoading(true);
     fetch(`${apiUrl}/recruitment-team`)
