@@ -78,7 +78,11 @@ const SignIn: React.FC = () => {
           options={recruitmentTeam}
           value={tempRecruiter}
           onChange={(_, newValue) => setTempRecruiter(newValue)}
-          getOptionLabel={(option) => option.recruiter_name}
+          getOptionLabel={(option) =>
+            option.admin
+              ? `${option.recruiter_name} (Admin)`
+              : option.recruiter_name
+          }
           isOptionEqualToValue={(opt, val) =>
             opt.recruiter_name === val.recruiter_name
           }
