@@ -17,9 +17,12 @@ const SignIn: React.FC = () => {
   const [recruitmentTeam, setRecruitmentTeam] = useState<Recruiter[]>([]);
   const { setRecruiter } = useContext(UserContext);
   const [tempRecruiter, setTempRecruiter] = useState<Recruiter | null>(null);
+  const [tempPassword, setTempPassword] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
+  const regularUserPassword = import.meta.env
+    .VITE_REGULAR_USER_PASSWORD as string;
+  const adminPassword = import.meta.env.VITE_ADMIN_USER_PASSWORD as string;
   useEffect(() => {
     setLoading(true);
     fetch(`${apiUrl}/recruitment-team`)
@@ -43,6 +46,17 @@ const SignIn: React.FC = () => {
   const submitClicked = () => {
     if (tempRecruiter) {
       setRecruiter(tempRecruiter);
+      if (tempRecruiter.admin) {
+        if (tempPassword !== adminPassword) {
+          alert('Incorrect password for admin user.');
+          return;
+        }
+      } else {
+        if (tempPassword !== regularUserPassword) {
+          alert('Incorrect password for regular user.');
+          return;
+        }
+      }
       console.log('Selected Name:', tempRecruiter);
       navigate('/candidates');
     } else {
@@ -80,6 +94,15 @@ const SignIn: React.FC = () => {
             style: { maxHeight: 220, overflowY: 'auto', minWidth: 320 },
           }}
           autoHighlight
+        />
+        <TextField
+          label="Password"
+          type="password"
+          variant="outlined"
+          value={tempPassword}
+          onChange={(event) => setTempPassword(event.target.value)}
+          sx={{ mt: 2, minWidth: 320 }}
+          fullWidth
         />
 
         <Button
