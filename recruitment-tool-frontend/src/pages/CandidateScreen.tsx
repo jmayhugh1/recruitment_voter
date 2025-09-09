@@ -62,7 +62,6 @@ const CandidateScreen: React.FC = () => {
       }
       const candidates = await getCandidates();
       const previousVotes = await getPreviousSavedVoteInfo();
-      console.log('Previous Votes:', previousVotes);
       candidates.forEach((candidate) => {
         const voteInfo = previousVotes.find((vote) => vote.id === candidate.id);
         candidate.recruiter_specific_vote = voteInfo
@@ -81,25 +80,38 @@ const CandidateScreen: React.FC = () => {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        justifyContent: 'center',
-      }}
-    >
-      {candidates.map((cand) => (
-        <CandidateCard
-          key={cand.id}
-          id={cand.id}
-          name={cand.name}
-          grad_date={cand.grad_date}
-          major={cand.major}
-          image_url={cand.image_url}
-          recruiter_specific_vote={cand.recruiter_specific_vote}
-        />
-      ))}
+    <div>
+      <div
+        style={{
+          backgroundColor: '#f0f0f0',
+          padding: '1rem',
+          textAlign: 'center',
+          marginBottom: '1rem',
+          fontWeight: 'bold',
+        }}
+      >
+        Logged in as: {recruiter?.recruiter_name || 'Unknown User'}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          justifyContent: 'center',
+        }}
+      >
+        {candidates.map((cand) => (
+          <CandidateCard
+            key={cand.id}
+            id={cand.id}
+            name={cand.name}
+            grad_date={cand.grad_date}
+            major={cand.major}
+            image_url={cand.image_url}
+            recruiter_specific_vote={cand.recruiter_specific_vote}
+          />
+        ))}
+      </div>
     </div>
   );
 };
