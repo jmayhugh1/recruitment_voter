@@ -18,12 +18,13 @@ const CandidateScreen: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // --- NEW: search state
+  // Search state
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
 
   const { recruiter } = useContext(UserContext);
   const navigate = useNavigate();
+
   const getPreviousSavedVoteInfo = async (): Promise<VoteInfo[]> => {
     try {
       const url_voting_info = `${apiUrl}/saved-vote-info`;
@@ -32,9 +33,7 @@ const CandidateScreen: React.FC = () => {
       });
       const response = await fetch(url_voting_info, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body,
       });
       if (!response.ok) return [];
@@ -73,7 +72,6 @@ const CandidateScreen: React.FC = () => {
       const candList = await getCandidates();
       const previousVotes = await getPreviousSavedVoteInfo();
 
-      // annotate recruiter-specific vote (don’t assume mutation is unsafe for your codebase)
       candList.forEach((candidate) => {
         const voteInfo = previousVotes.find((v) => v.id === candidate.id);
         candidate.recruiter_specific_vote = voteInfo
@@ -88,12 +86,12 @@ const CandidateScreen: React.FC = () => {
     fetchData();
   }, [navigate, recruiter]);
 
-  // --- NEW: Fuse instance memoized on candidate list
+  // Fuse instance
   const fuse = useMemo(() => {
     return new Fuse<Candidate>(candidates, {
       includeScore: true,
       ignoreLocation: true,
-      threshold: 0.33, // lower = stricter; tweak if you want looser matches
+      threshold: 0.33,
       distance: 100,
       minMatchCharLength: 2,
       keys: [
@@ -104,7 +102,7 @@ const CandidateScreen: React.FC = () => {
     });
   }, [candidates]);
 
-  // --- NEW: compute filtered list using deferred query for smoother typing
+  // Filtered list
   const filteredCandidates = useMemo(() => {
     const q = deferredQuery.trim();
     if (!q) return candidates;
@@ -115,7 +113,20 @@ const CandidateScreen: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
-      {/* NEW: Search bar */}
+      {/* Logged-in banner */}
+      <div
+        style={{
+          backgroundColor: '#f0f0f0',
+          padding: '1rem',
+          textAlign: 'center',
+          margin: '1rem 0',
+          fontWeight: 'bold',
+        }}
+      >
+        Logged in as: {recruiter?.recruiter_name || 'Unknown User'}
+      </div>
+
+      {/* Search bar */}
       <div style={{ maxWidth: 720, margin: '0.75rem auto 1rem' }}>
         <label htmlFor="candidate-search" style={{ display: 'none' }}>
           Search candidates
