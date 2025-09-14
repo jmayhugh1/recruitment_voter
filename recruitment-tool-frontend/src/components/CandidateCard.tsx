@@ -12,7 +12,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 // Votes
 const UPVOTE = 1;
-const DOWNVOTE = -1;
+// const DOWNVOTE = -1;
 const NOVOTE = 0;
 
 // Standardized tile + media sizes (tweak as you like)
@@ -121,14 +121,14 @@ const CandidateCard: React.FC<Candidate> = ({
         >
           UpVote
         </Button>
-        <Button
+        {/* <Button
           size="small"
           color="secondary"
           variant={selectedVote === DOWNVOTE ? 'contained' : 'outlined'}
           onClick={() => updateVotes(DOWNVOTE)}
         >
           DownVote
-        </Button>
+        </Button> */}
       </CardActions>
     </Card>
   );
