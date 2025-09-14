@@ -10,7 +10,15 @@ import {
   Tooltip,
   LabelList,
 } from 'recharts';
-import { Card, CardContent, Typography, Box, Slider } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
+import {
+  Card,
+  CardContent,
+  Button,
+  Typography,
+  Box,
+  Slider,
+} from '@mui/material';
 import Loading from '../components/Loading';
 import { UserContext } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +41,8 @@ export default function AnalyticsScreen() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { recruiter } = useContext(UserContext);
+  const [downloading, setDownloading] = useState(false);
+
   const navigate = useNavigate();
 
   // Slider value (updates immediately while dragging)
@@ -64,6 +74,33 @@ export default function AnalyticsScreen() {
       cancelled = true;
     };
   }, [navigate, recruiter, n]);
+
+  async function handleDownloadCsv() {
+    try {
+      setDownloading(true);
+      const res = await fetch(`${apiUrl}/get-recruit-result`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'text/csv' },
+      });
+      if (!res.ok)
+        throw new Error(`Download failed: ${res.status} ${res.statusText}`);
+
+      // Get CSV as a Blob and trigger download
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'recruitment-voter-candidate-info-by-votes.csv'; // filename from your Lambda
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   const data = useMemo(
     () => [...topN].sort((a, b) => Number(b.votes ?? 0) - Number(a.votes ?? 0)),
@@ -113,6 +150,14 @@ export default function AnalyticsScreen() {
               aria-label="Top N slider"
             />
           </Box>
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={handleDownloadCsv}
+            disabled={downloading}
+          >
+            {downloading ? 'Preparing…' : 'Download CSV'}
+          </Button>
         </Box>
 
         {/* replace the existing chart <Box ...> with this */}
