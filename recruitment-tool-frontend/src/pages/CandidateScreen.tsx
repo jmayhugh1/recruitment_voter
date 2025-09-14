@@ -1,16 +1,28 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useContext,
+  useMemo,
+  useDeferredValue,
+} from 'react';
+import Fuse from 'fuse.js';
 import CandidateCard from '../components/CandidateCard';
 import type { VoteInfo, Candidate } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import Loading from '../components/Loading';
-const apiUrl = import.meta.env.VITE_API_URL;
+
+const apiUrl = import.meta.env.VITE_API_URL as string;
 
 const CandidateScreen: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
-  const { recruiter } = useContext(UserContext);
 
+  // --- NEW: search state
+  const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+
+  const { recruiter } = useContext(UserContext);
   const navigate = useNavigate();
   const getPreviousSavedVoteInfo = async (): Promise<VoteInfo[]> => {
     try {
@@ -23,12 +35,9 @@ const CandidateScreen: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: body,
+        body,
       });
-      console.log('Response from saved-vote-info:', response);
-      if (!response.ok) {
-        return [];
-      }
+      if (!response.ok) return [];
       const data: { recruit_id: string; votes: string }[] =
         await response.json();
       return data.map((item) => ({
@@ -45,8 +54,9 @@ const CandidateScreen: React.FC = () => {
     try {
       const url = `${apiUrl}/candidates`;
       const response = await fetch(url);
-      const data = await response.json();
-      return data;
+      if (!response.ok) return [];
+      const data = (await response.json()) as Candidate[];
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Failed to fetch candidates:', error);
       return [];
@@ -60,46 +70,101 @@ const CandidateScreen: React.FC = () => {
         navigate('/');
         return;
       }
-      const candidates = await getCandidates();
+      const candList = await getCandidates();
       const previousVotes = await getPreviousSavedVoteInfo();
-      console.log('Previous Votes:', previousVotes);
-      candidates.forEach((candidate) => {
-        const voteInfo = previousVotes.find((vote) => vote.id === candidate.id);
+
+      // annotate recruiter-specific vote (don’t assume mutation is unsafe for your codebase)
+      candList.forEach((candidate) => {
+        const voteInfo = previousVotes.find((v) => v.id === candidate.id);
         candidate.recruiter_specific_vote = voteInfo
           ? (voteInfo.vote as 0 | 1 | -1 | undefined)
           : 0;
       });
-      setCandidates(candidates);
+
+      setCandidates(candList);
       setLoading(false);
     };
 
     fetchData();
   }, [navigate, recruiter]);
 
-  if (loading) {
-    return <Loading />;
-  }
+  // --- NEW: Fuse instance memoized on candidate list
+  const fuse = useMemo(() => {
+    return new Fuse<Candidate>(candidates, {
+      includeScore: true,
+      ignoreLocation: true,
+      threshold: 0.33, // lower = stricter; tweak if you want looser matches
+      distance: 100,
+      minMatchCharLength: 2,
+      keys: [
+        { name: 'name', weight: 0.6 },
+        { name: 'major', weight: 0.25 },
+        { name: 'grad_date', weight: 0.15 },
+      ],
+    });
+  }, [candidates]);
+
+  // --- NEW: compute filtered list using deferred query for smoother typing
+  const filteredCandidates = useMemo(() => {
+    const q = deferredQuery.trim();
+    if (!q) return candidates;
+    return fuse.search(q).map((r) => r.item);
+  }, [fuse, deferredQuery, candidates]);
+
+  if (loading) return <Loading />;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        justifyContent: 'center',
-      }}
-    >
-      {candidates.map((cand) => (
-        <CandidateCard
-          key={cand.id}
-          id={cand.id}
-          name={cand.name}
-          grad_date={cand.grad_date}
-          major={cand.major}
-          image_url={cand.image_url}
-          recruiter_specific_vote={cand.recruiter_specific_vote}
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
+      {/* NEW: Search bar */}
+      <div style={{ maxWidth: 720, margin: '0.75rem auto 1rem' }}>
+        <label htmlFor="candidate-search" style={{ display: 'none' }}>
+          Search candidates
+        </label>
+        <input
+          id="candidate-search"
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name, major, or grad year…"
+          aria-label="Search candidates"
+          autoComplete="off"
+          style={{
+            width: '100%',
+            padding: '0.75rem 1rem',
+            border: '1px solid #d0d7de',
+            borderRadius: 12,
+            fontSize: 16,
+            outline: 'none',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+          }}
         />
-      ))}
+      </div>
+
+      {/* Cards grid */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          justifyContent: 'center',
+        }}
+      >
+        {filteredCandidates.length === 0 ? (
+          <p style={{ opacity: 0.7, padding: '1rem' }}>No matches found.</p>
+        ) : (
+          filteredCandidates.map((cand) => (
+            <CandidateCard
+              key={cand.id}
+              id={cand.id}
+              name={cand.name}
+              grad_date={cand.grad_date}
+              major={cand.major}
+              image_url={cand.image_url}
+              recruiter_specific_vote={cand.recruiter_specific_vote}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 };
