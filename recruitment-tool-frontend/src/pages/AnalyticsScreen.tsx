@@ -73,6 +73,15 @@ export default function AnalyticsScreen() {
   if (loading) return <Loading />;
   if (error) return <div>Failed to load: {error}</div>;
 
+  // put above return (after `data`):
+  const ROW_HEIGHT = 34; // ~pixels per bar (tweak to taste)
+  const AXIS_PADDING = 80; // room for axes/labels/margins
+  const MIN_VIEWPORT = 380; // current visible height
+  const chartHeight = Math.max(
+    MIN_VIEWPORT,
+    data.length * ROW_HEIGHT + AXIS_PADDING,
+  );
+
   return (
     <Card sx={{ p: 2, boxShadow: 3 }}>
       <CardContent>
@@ -106,13 +115,30 @@ export default function AnalyticsScreen() {
           </Box>
         </Box>
 
-        {data.length > 0 ? (
-          <Box sx={{ width: '100%', height: 380 }}>
-            <ResponsiveContainer>
+        {/* replace the existing chart <Box ...> with this */}
+        <Box
+          sx={{
+            width: '100%',
+            maxHeight: 380, // visible window
+            overflowY: 'auto', // scroll vertically when too many bars
+            overflowX: 'hidden', // or 'auto' if you also want horizontal scroll
+            pr: 1, // keep scrollbar from overlapping chart
+            borderRadius: 1,
+          }}
+        >
+          {/* inner container gives the chart its full height */}
+          <Box
+            sx={{
+              height: chartHeight,
+              minWidth: 520 /* optional for labels */,
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data}
                 layout="vertical"
-                margin={{ top: 8, right: 24, left: 80, bottom: 8 }}
+                margin={{ top: 16, right: 24, left: 100, bottom: 16 }}
+                barCategoryGap={8} // keep bars readable
               >
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
@@ -120,31 +146,35 @@ export default function AnalyticsScreen() {
                     <stop offset="100%" stopColor="rgba(59, 130, 246, 0.9)" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} />
+
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  horizontal
+                  vertical={false}
+                />
                 <XAxis type="number" allowDecimals={false} />
-                <YAxis type="category" dataKey="name" width={150} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={150}
+                  interval={0}
+                />
                 <Tooltip
                   formatter={(v: number) => [`${v} votes`, 'Votes']}
                   labelFormatter={(label) => `Candidate: ${label}`}
                   contentStyle={{ borderRadius: 8 }}
                 />
-                <Bar dataKey="votes" fill="url(#barGradient)" radius={[0, 8, 8, 0]}>
+                <Bar
+                  dataKey="votes"
+                  fill="url(#barGradient)"
+                  radius={[0, 8, 8, 0]}
+                >
                   <LabelList dataKey="votes" position="right" />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </Box>
-        ) : (
-          <Typography color="text.secondary">No data to display.</Typography>
-        )}
-
-        <ol style={{ marginTop: 16 }}>
-          {data.map((c) => (
-            <li key={c.id}>
-              {c.name} — {c.votes} votes
-            </li>
-          ))}
-        </ol>
+        </Box>
       </CardContent>
     </Card>
   );
