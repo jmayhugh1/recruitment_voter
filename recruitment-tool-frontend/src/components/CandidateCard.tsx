@@ -12,7 +12,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 // Votes
 const UPVOTE = 1;
-// const DOWNVOTE = -1;
+const DOWNVOTE = -1;
 const NOVOTE = 0;
 
 // Standardized tile + media sizes (tweak as you like)
@@ -29,7 +29,9 @@ const CandidateCard: React.FC<Candidate> = ({
   recruiter_specific_vote = NOVOTE,
 }) => {
   const { recruiter } = useContext(UserContext);
-  const [selectedVote, setSelectedVote] = useState<number>(recruiter_specific_vote);
+  const [selectedVote, setSelectedVote] = useState<number>(
+    recruiter_specific_vote,
+  );
 
   const updateVotes = (vote: number) => {
     let increment = vote;
@@ -78,8 +80,8 @@ const CandidateCard: React.FC<Candidate> = ({
           height: `${MEDIA_HEIGHT}px`,
           width: '100%',
           bgcolor: '#000',
-          objectFit: 'contain',       // show whole image (letterboxed)
-          objectPosition: 'center',   // center it
+          objectFit: 'contain', // show whole image (letterboxed)
+          objectPosition: 'center', // center it
           display: 'block',
         }}
         // (Optional) simple fallback if an image fails to load:
@@ -94,14 +96,19 @@ const CandidateCard: React.FC<Candidate> = ({
                        fill="white" font-family="Arial" font-size="18">
                    No image
                  </text>
-               </svg>`
+               </svg>`,
             );
         }}
       />
 
       {/* Content grows to fill so actions stay pinned at bottom */}
       <CardContent sx={{ flexGrow: 1, py: 1.5 }}>
-        <Typography gutterBottom variant="h6" component="div" sx={{ mb: 0.5, lineHeight: 1.2 }}>
+        <Typography
+          gutterBottom
+          variant="h6"
+          component="div"
+          sx={{ mb: 0.5, lineHeight: 1.2 }}
+        >
           {name}
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -121,14 +128,14 @@ const CandidateCard: React.FC<Candidate> = ({
         >
           UpVote
         </Button>
-        {/* <Button
+        <Button
           size="small"
           color="secondary"
           variant={selectedVote === DOWNVOTE ? 'contained' : 'outlined'}
           onClick={() => updateVotes(DOWNVOTE)}
         >
           DownVote
-        </Button> */}
+        </Button>
       </CardActions>
     </Card>
   );
