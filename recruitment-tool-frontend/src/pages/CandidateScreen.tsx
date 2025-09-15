@@ -2,10 +2,10 @@ import React, {
   useEffect,
   useState,
   useContext,
-  useMemo,
-  useDeferredValue,
+  // useMemo,
+  // useDeferredValue,
 } from 'react';
-import Fuse from 'fuse.js';
+// import Fuse from 'fuse.js';
 import CandidateCard from '../components/CandidateCard';
 import type { VoteInfo, Candidate } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -17,8 +17,8 @@ const apiUrl = import.meta.env.VITE_API_URL as string;
 const CandidateScreen: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState('');
-  const deferredQuery = useDeferredValue(query);
+  // const [query, setQuery] = useState('');
+  // const deferredQuery = useDeferredValue(query);
 
   const { recruiter } = useContext(UserContext);
   const navigate = useNavigate();
@@ -87,27 +87,27 @@ const CandidateScreen: React.FC = () => {
   }, [navigate, recruiter]);
 
   // Fuse instance
-  const fuse = useMemo(() => {
-    return new Fuse<Candidate>(candidates, {
-      includeScore: true,
-      ignoreLocation: true,
-      threshold: 0.33,
-      distance: 100,
-      minMatchCharLength: 2,
-      keys: [
-        { name: 'name', weight: 0.6 },
-        { name: 'major', weight: 0.25 },
-        { name: 'grad_date', weight: 0.15 },
-      ],
-    });
-  }, [candidates]);
+  // const fuse = useMemo(() => {
+  //   return new Fuse<Candidate>(candidates, {
+  //     includeScore: true,
+  //     ignoreLocation: true,
+  //     threshold: 0.33,
+  //     distance: 100,
+  //     minMatchCharLength: 2,
+  //     keys: [
+  //       { name: 'name', weight: 0.6 },
+  //       { name: 'major', weight: 0.25 },
+  //       { name: 'grad_date', weight: 0.15 },
+  //     ],
+  //   });
+  // }, [candidates]);
 
-  // Filtered list using deferred query
-  const filteredCandidates = useMemo(() => {
-    const q = deferredQuery.trim();
-    if (!q) return candidates;
-    return fuse.search(q).map((r) => r.item);
-  }, [fuse, deferredQuery, candidates]);
+  // // Filtered list using deferred query
+  // const filteredCandidates = useMemo(() => {
+  //   const q = deferredQuery.trim();
+  //   if (!q) return candidates;
+  //   return fuse.search(q).map((r) => r.item);
+  // }, [fuse, deferredQuery, candidates]);
 
   if (loading) return <Loading />;
 
@@ -128,7 +128,7 @@ const CandidateScreen: React.FC = () => {
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
         {/* Search bar */}
-        <div style={{ maxWidth: 720, margin: '0.75rem auto 1rem' }}>
+        {/* <div style={{ maxWidth: 720, margin: '0.75rem auto 1rem' }}>
           <label htmlFor="candidate-search" style={{ display: 'none' }}>
             Search candidates
           </label>
@@ -150,7 +150,7 @@ const CandidateScreen: React.FC = () => {
               boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
             }}
           />
-        </div>
+        </div> */}
 
         {/* Cards grid */}
         <div
@@ -161,10 +161,10 @@ const CandidateScreen: React.FC = () => {
             justifyContent: 'center',
           }}
         >
-          {filteredCandidates.length === 0 ? (
+          {candidates.length === 0 ? (
             <p style={{ opacity: 0.7, padding: '1rem' }}>No matches found.</p>
           ) : (
-            filteredCandidates.map((cand) => (
+            candidates.map((cand) => (
               <CandidateCard
                 key={cand.id}
                 id={cand.id}
