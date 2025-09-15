@@ -128,7 +128,7 @@ const CandidateScreen: React.FC = () => {
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
         {/* Search bar */}
-        <div style={{ maxWidth: 720, margin: '0.75rem auto 1rem' }}>
+        {/* <div style={{ maxWidth: 720, margin: '0.75rem auto 1rem' }}>
           <label htmlFor="candidate-search" style={{ display: 'none' }}>
             Search candidates
           </label>
@@ -150,7 +150,7 @@ const CandidateScreen: React.FC = () => {
               boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
             }}
           />
-        </div>
+        </div> */}
 
         {/* Cards grid */}
         <div
