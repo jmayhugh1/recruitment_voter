@@ -51,11 +51,30 @@ const CandidateScreen: React.FC = () => {
     try {
       const url = `${apiUrl}/candidates`;
       const response = await fetch(url);
-      if (!response.ok) return [];
+
+      if (!response.ok) {
+        console.error(
+          `Failed to fetch candidates: ${response.status} ${response.statusText}`,
+        );
+        return [];
+      }
+
       const data = (await response.json()) as Candidate[];
-      return Array.isArray(data) ? data : [];
+      const candidate_list = Array.isArray(data) ? data : [];
+
+      // Sort by last name
+      candidate_list.sort((a, b) => {
+        const a_last = a.name.split(' ').slice(1).join(' ');
+        const b_last = b.name.split(' ').slice(1).join(' ');
+        return a_last.localeCompare(b_last);
+      });
+
+      return candidate_list;
     } catch (error) {
-      console.error('Failed to fetch candidates:', error);
+      console.error(
+        'An unexpected error occurred while fetching candidates:',
+        error,
+      );
       return [];
     }
   };
