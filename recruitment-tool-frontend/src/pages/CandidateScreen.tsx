@@ -13,8 +13,10 @@ import { UserContext } from '../context/UserContext';
 import Loading from '../components/Loading';
 
 const apiUrl = import.meta.env.VITE_API_URL as string;
+const VOTE_LIMIT = 5;
 
 const CandidateScreen: React.FC = () => {
+  const [activeVoteCount, setActiveVoteCount] = useState(0);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   // const [query, setQuery] = useState('');
@@ -97,13 +99,23 @@ const CandidateScreen: React.FC = () => {
       });
 
       setCandidates(candList);
-
-      setCandidates(candList);
+      const used = candList.reduce(
+        (acc, c) => acc + (c.recruiter_specific_vote ? 1 : 0),
+        0,
+      );
+      setActiveVoteCount(used);
       setLoading(false);
     };
 
     fetchData();
   }, [navigate, recruiter]);
+
+  const handleVoteChange = (prevVote: number, newVote: number) => {
+    const wasActive = prevVote !== 0;
+    const nowActive = newVote !== 0;
+    if (!wasActive && nowActive) setActiveVoteCount((x) => x + 1);
+    else if (wasActive && !nowActive) setActiveVoteCount((x) => x - 1);
+  };
 
   // Fuse instance
   // const fuse = useMemo(() => {
@@ -183,17 +195,31 @@ const CandidateScreen: React.FC = () => {
           {candidates.length === 0 ? (
             <p style={{ opacity: 0.7, padding: '1rem' }}>No matches found.</p>
           ) : (
-            candidates.map((cand) => (
-              <CandidateCard
-                key={cand.id}
-                id={cand.id}
-                name={cand.name}
-                grad_date={cand.grad_date}
-                major={cand.major}
-                image_url={cand.image_url}
-                recruiter_specific_vote={cand.recruiter_specific_vote}
-              />
-            ))
+            candidates.map((cand) => {
+              const alreadyVoted = !!cand.recruiter_specific_vote;
+              const canVote = activeVoteCount < VOTE_LIMIT || alreadyVoted; // allow undo/flip of an existing vote
+
+              return (
+                <CandidateCard
+                  key={cand.id}
+                  id={cand.id}
+                  name={cand.name}
+                  grad_date={cand.grad_date}
+                  major={cand.major}
+                  image_url={cand.image_url}
+                  recruiter_specific_vote={cand.recruiter_specific_vote}
+                  // NEW props:
+                  canVote={canVote}
+                  onVoteChange={handleVoteChange}
+                  onHitLimit={() => {
+                    // optional UX: inform user once
+                    alert(
+                      `You've reached the vote limit of ${VOTE_LIMIT}. You can undo or flip existing votes, but you can't add more.`,
+                    );
+                  }}
+                />
+              );
+            })
           )}
         </div>
       </div>
