@@ -27,25 +27,16 @@ const CandidateCard: React.FC<Candidate> = ({
   major,
   image_url,
   recruiter_specific_vote = NOVOTE,
+  canVote = true,
+  onVoteChange,
+  onHitLimit,
 }) => {
   const { recruiter } = useContext(UserContext);
   const [selectedVote, setSelectedVote] = useState<number>(
     recruiter_specific_vote,
   );
 
-  const updateVotes = (vote: number) => {
-    let increment = vote;
-
-    if (selectedVote === vote) {
-      increment = -vote; // undo
-      setSelectedVote(NOVOTE);
-    } else if (selectedVote !== NOVOTE && selectedVote !== vote) {
-      increment = vote * 2; // flip (-1 -> +1 or +1 -> -1)
-      setSelectedVote(vote);
-    } else {
-      setSelectedVote(vote);
-    }
-
+  const sendVote = (increment: number) => {
     fetch(`${apiUrl}/vote`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -57,6 +48,38 @@ const CandidateCard: React.FC<Candidate> = ({
       }),
     });
   };
+
+  const updateVotes = (vote: number) => {
+    // Block new votes if limit reached and user hasn't voted on this card yet
+    const isNewVoteOnThisCard = selectedVote === NOVOTE && vote !== NOVOTE;
+    if (!canVote && isNewVoteOnThisCard) {
+      onHitLimit?.();
+      return;
+    }
+
+    const prev = selectedVote;
+    let next = prev;
+    let increment = vote;
+
+    if (prev === vote) {
+      // undo
+      increment = -vote;
+      next = NOVOTE;
+    } else if (prev !== NOVOTE && prev !== vote) {
+      // flip (-1 -> +1) or (+1 -> -1)
+      increment = vote * 2;
+      next = vote;
+    } else {
+      // was NOVOTE, now a new vote
+      next = vote;
+    }
+
+    setSelectedVote(next);
+    onVoteChange?.(prev, next);
+    sendVote(increment);
+  };
+
+  const disableButtons = !canVote && selectedVote === NOVOTE;
 
   return (
     <Card
@@ -125,6 +148,7 @@ const CandidateCard: React.FC<Candidate> = ({
           color="primary"
           variant={selectedVote === UPVOTE ? 'contained' : 'outlined'}
           onClick={() => updateVotes(UPVOTE)}
+          disabled={disableButtons}
         >
           UpVote
         </Button>
@@ -133,6 +157,7 @@ const CandidateCard: React.FC<Candidate> = ({
           color="secondary"
           variant={selectedVote === DOWNVOTE ? 'contained' : 'outlined'}
           onClick={() => updateVotes(DOWNVOTE)}
+          disabled={disableButtons}
         >
           DownVote
         </Button>
