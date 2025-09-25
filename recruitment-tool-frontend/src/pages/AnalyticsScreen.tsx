@@ -113,7 +113,7 @@ export default function AnalyticsScreen() {
   // put above return (after `data`):
   const ROW_HEIGHT = 34; // ~pixels per bar (tweak to taste)
   const AXIS_PADDING = 80; // room for axes/labels/margins
-  const MIN_VIEWPORT = 380; // current visible height
+  const MIN_VIEWPORT = 1200; // current visible height
   const chartHeight = Math.max(
     MIN_VIEWPORT,
     data.length * ROW_HEIGHT + AXIS_PADDING,
@@ -164,7 +164,7 @@ export default function AnalyticsScreen() {
         <Box
           sx={{
             width: '100%',
-            maxHeight: 380, // visible window
+            maxHeight: MIN_VIEWPORT, // visible window
             overflowY: 'auto', // scroll vertically when too many bars
             overflowX: 'hidden', // or 'auto' if you also want horizontal scroll
             pr: 1, // keep scrollbar from overlapping chart
